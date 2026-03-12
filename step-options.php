@@ -365,6 +365,11 @@ function step_fields_page_html() {
 function get_step_option($key, $default = '') {
     $sanitized_key = sanitize_key($key);
     $value = get_option("step_{$sanitized_key}", $default);
+
+    $value = wpautop($value);
+
+    //$value = apply_filters('the_content', $value);
+
     return $value;
 }
 
@@ -372,7 +377,9 @@ function get_step_option($key, $default = '') {
  * Возвращает ID изображения по ключу
  */
 function get_step_option_image_id($key, $default = 0) {
-    return (int) get_step_option($key, $default);
+    $sanitized_key = sanitize_key($key);
+    $value = get_option("step_{$sanitized_key}", $default);
+    return (int) $value;
 }
 
 /**
