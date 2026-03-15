@@ -104,8 +104,8 @@ function step_options_add_admin_pages() {
 
     add_submenu_page(
         'step-options',
-        __('Field management', 'step-options'),
-        __('Field management', 'step-options'),
+        __('Manage Fields', 'step-options'),
+        __('Manage Fields', 'step-options'),
         'manage_options',
         'step-fields',
         'step_fields_page_html'
@@ -133,6 +133,12 @@ function step_options_page_html() {
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
+        <?php 
+        $fields = get_option('step_custom_fields', []);
+
+        if (!empty($fields)){
+        ?>
+
         <form method="post" action="options.php">
             <?php
             settings_fields('step_options_group');
@@ -140,6 +146,15 @@ function step_options_page_html() {
             submit_button(__('Save changes', 'step-options'));
             ?>
         </form>
+
+        <?php } else { ?>
+            <div>
+                <h3><?php _e('Fields not added yet', 'step-options'); ?></h3>
+                <a href="<?php echo admin_url('admin.php?page=step-fields'); ?>" class="button button-primary">
+                    <?php _e('Add first field', 'step-options'); ?>
+                </a>
+            </div>
+       <?php } ?>
     </div>
     <?php
 }
@@ -275,7 +290,7 @@ function step_render_field($key, $type) {
     <?php
 }
 
-// HTML страницы управления полями (добавление/удаление)
+// HTML pages for managing fields (adding/removing)
 function step_fields_page_html() {
     if (!current_user_can('manage_options')) {
         return;
@@ -302,19 +317,19 @@ function step_fields_page_html() {
     $fields = get_option('step_custom_fields', []);
     ?>
     <div class="wrap">
-        <h1><?php _e('Field management', 'step-options'); ?></h1>
+        <h1><?php _e('Manage Fields', 'step-options'); ?></h1>
 
         <!-- Add field form -->
         <form method="post">
             <?php wp_nonce_field('step_add_field'); ?>
             <table class="form-table">
                 <tr>
-                    <th><label for="field_key"><?php _e('Field key (only Latin letters, numbers, _)', 'step-options'); ?></label></th>
-                    <td><input type="text" id="field_key" name="field_key" class="regular-text" required pattern="[a-zA-Z0-9_]+"></td>
+                    <th><label for="field_label"><?php _e('Field label', 'step-options'); ?></label></th>
+                    <td><input type="text" id="field_label" name="field_label" class="regular-text" required></td>
                 </tr>
                 <tr>
-                    <th><label for="field_label"><?php _e('Field name (label)', 'step-options'); ?></label></th>
-                    <td><input type="text" id="field_label" name="field_label" class="regular-text" required></td>
+                    <th><label for="field_key"><?php _e('Field key (only Latin letters, numbers, _)', 'step-options'); ?></label></th>
+                    <td><input type="text" id="field_key" name="field_key" class="regular-text" required pattern="[a-zA-Z0-9_]+"></td>
                 </tr>
                 <tr>
                     <th><label for="field_type"><?php _e('Field type', 'step-options'); ?></label></th>
@@ -338,7 +353,8 @@ function step_fields_page_html() {
                 <thead>
                     <tr>
                         <th><?php _e('Key', 'step-options'); ?></th>
-                        <th><?php _e('Name', 'step-options'); ?></th>
+                        <th><?php _e('Shortcode', 'step-options'); ?></th>
+                        <th><?php _e('Label', 'step-options'); ?></th>
                         <th><?php _e('Type', 'step-options'); ?></th>
                         <th><?php _e('Actions', 'step-options'); ?></th>
                     </tr>
@@ -347,6 +363,7 @@ function step_fields_page_html() {
                     <?php foreach ($fields as $field) : ?>
                         <tr>
                             <td><?php echo esc_html($field['key']); ?></td>
+                            <td><?php if($field['type'] != 'image'){?>[step_option key="<?php echo esc_html($field['key']); ?>"] <?php } ?></td>
                             <td><?php echo esc_html($field['label']); ?></td>
                             <td><?php echo esc_html($field['type']); ?></td>
                             <td>
@@ -361,20 +378,18 @@ function step_fields_page_html() {
     <?php
 }
 
-// Функция для получения значения по ключу
+// The main function for getting the value by key
 function get_step_option($key, $default = '') {
     $sanitized_key = sanitize_key($key);
     $value = get_option("step_{$sanitized_key}", $default);
 
     $value = wpautop($value);
 
-    //$value = apply_filters('the_content', $value);
-
     return $value;
 }
 
 /**
- * Возвращает ID изображения по ключу
+ * Returns the image ID by key
  */
 function get_step_option_image_id($key, $default = 0) {
     $sanitized_key = sanitize_key($key);
@@ -383,7 +398,7 @@ function get_step_option_image_id($key, $default = 0) {
 }
 
 /**
- * Возвращает URL изображения (можно указать размер: thumbnail, medium, large, full)
+ * Returns the URL of the image (you can specify the size: thumbnail, medium, large, full)
  */
 function get_step_option_image_url($key, $size = 'full', $default = '') {
     $id = get_step_option_image_id($key);
@@ -393,7 +408,7 @@ function get_step_option_image_url($key, $size = 'full', $default = '') {
 }
 
 /**
- * Выводит готовый <img> тег
+ * Outputs the finished <img> tag
  */
 function get_step_option_image($key, $size = 'full', $attr = [], $default = '') {
     $id = get_step_option_image_id($key);
@@ -401,7 +416,7 @@ function get_step_option_image($key, $size = 'full', $attr = [], $default = '') 
     return wp_get_attachment_image($id, $size, false, $attr);
 }
 
-// Шорткод (теперь выводит HTML)
+// Shortcode
 function step_option_shortcode($atts) {
     $atts = shortcode_atts(['key' => ''], $atts);
     if (empty($atts['key'])) return '';
