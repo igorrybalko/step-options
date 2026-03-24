@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Step Options
-Plugin URI:  https://webstep.top/
+Plugin URI:  https://webstep.top/cms/step-options-plugin-for-wordpress/
 Description: Plugin for creating global site options
 Version:     1.0.0
 Author: Ihor Rybalko

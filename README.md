@@ -42,7 +42,7 @@ All values are accessible via the `get_step_option()` function:
 ```php
 <?php
 // Simple text, textarea, wysiwyg
-echo get_step_option('site_slogan');                    // outputs the value (with wpautop for wysiwyg/textarea)
+echo get_step_option('site_slogan');
 
 // With default fallback
 echo get_step_option('footer_text', '© 2026 My Site');
